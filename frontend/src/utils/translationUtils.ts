@@ -318,6 +318,26 @@ export const formatCategory = (language: SupportedLanguage, category: string): s
 };
 
 /**
+ * Condition translation
+ */
+const CONDITION_MAP: Record<string, { en: string; am: string }> = {
+  EXCELLENT: { en: 'Excellent', am: 'እጅግ በጣም ጥሩ' },
+  GOOD: { en: 'Good', am: 'ጥሩ' },
+  NEEDS_REPAIR: { en: 'Needs Repair', am: 'ጥገና የሚያስፈልገው' },
+  DAMAGED: { en: 'Damaged', am: 'የተበላሸ' },
+  MISSING: { en: 'Missing', am: 'የጠፋ' },
+};
+
+export const formatCondition = (language: SupportedLanguage, condition: string): string => {
+  if (!condition) return '';
+  const upper = condition.toUpperCase();
+  if (CONDITION_MAP[upper]) {
+    return language === 'am' ? CONDITION_MAP[upper].am : CONDITION_MAP[upper].en;
+  }
+  return condition;
+};
+
+/**
  * Priority translation
  */
 const PRIORITY_MAP: Record<string, { en: string; am: string }> = {

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Wachemo University AI-Powered Accommodation & Property Management System
 ## የዋቸሞ ዩኒቨርሲቲ የተማሪዎች ማደሪያና የቋሚ ንብረት አስተዳደር ሲስተም
 
@@ -83,3 +84,7 @@ API running on [http://localhost:5000](http://localhost:5000).
 - **Accommodation Officer**: `accommodation@wachemo.edu.et` (W/ro Genet)
 - **Property Manager**: `property@wachemo.edu.et` (Ato Solomon)
 - **Maintenance Staff**: `maintenance@wachemo.edu.et` (Eng. Dawit)
+=======
+# Accomdation
+for wachemo university AI-Powered University Accommodation and Property Management System
+>>>>>>> afdcfbdcc3a28f73238d6ea82e9a1572a164e3c7
