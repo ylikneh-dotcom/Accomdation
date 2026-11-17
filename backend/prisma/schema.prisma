@@ -1,0 +1,281 @@
+// Prisma Schema for Wachemo University Accommodation & Property Management System
+// Central PostgreSQL Database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  STUDENT
+  DORMITORY_MANAGER
+  ACCOMMODATION_OFFICER
+  PROPERTY_MANAGER
+  MAINTENANCE_STAFF
+}
+
+enum VerificationStatus {
+  VERIFIED
+  PENDING
+  FLAGGED
+  REJECTED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum BedStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  RESERVED
+}
+
+enum ApplicationStatus {
+  PENDING
+  AI_RECOMMENDED
+  APPROVED
+  ALLOCATED
+  REJECTED
+}
+
+enum PropertyCondition {
+  EXCELLENT
+  GOOD
+  NEEDS_REPAIR
+  DAMAGED
+  MISSING
+}
+
+enum MaintenanceCategory {
+  WATER_PLUMBING
+  ELECTRICITY
+  BED_FURNITURE
+  INTERNET_WIFI
+  DOORS_WINDOWS
+  SANITATION_TOILET
+  OTHER
+}
+
+enum MaintenancePriority {
+  URGENT
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum MaintenanceStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  VERIFIED
+  REJECTED
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  passwordHash   String
+  role           UserRole
+  fullName       String
+  studentId      String?   @unique
+  phone          String?
+  avatarUrl      String?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relationships
+  officialRecord OfficialStudentRecord?
+  applications   AccommodationApplication[]
+  complaints     MaintenanceComplaint[] @relation("StudentComplaints")
+  assignedTasks  MaintenanceComplaint[] @relation("AssignedStaff")
+  auditLogs      SystemAuditLog[]
+}
+
+model OfficialStudentRecord {
+  id             String             @id @default(uuid())
+  studentId      String             @unique
+  fullName       String
+  collegeName    String
+  departmentName String
+  batch          String
+  semester       String
+  gender         Gender
+  status         VerificationStatus @default(VERIFIED)
+  isRegistered   Boolean            @default(false)
+  notes          String?
+  uploadedAt     DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  user           User?              @relation(fields: [userId], references: [id])
+  userId         String?            @unique
+}
+
+model College {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  amharicName String
+  code        String       @unique
+  description String?
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  departments Department[]
+}
+
+model Department {
+  id          String   @id @default(uuid())
+  name        String
+  amharicName String
+  code        String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  collegeId   String
+  college     College  @relation(fields: [collegeId], references: [id], onDelete: Restrict)
+}
+
+model Batch {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  yearEC    String
+  yearGC    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Semester {
+  id           String   @id @default(uuid())
+  name         String
+  academicYear String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model Dormitory {
+  id           String   @id @default(uuid())
+  name         String
+  amharicName  String
+  blockNumber  String   @unique
+  genderType   Gender
+  totalFloors  Int
+  totalRooms   Int
+  totalBeds    Int
+  occupiedBeds Int      @default(0)
+  managerName  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  rooms        Room[]
+}
+
+model Room {
+  id            String   @id @default(uuid())
+  roomNumber    String   @unique
+  floorNumber   Int
+  capacity      Int      @default(4)
+  occupiedCount Int      @default(0)
+  roomType      String   @default("STANDARD")
+  createdAt     DateTime @default(now())
+
+  dormitoryId   String
+  dormitory     Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+  beds          Bed[]
+}
+
+model Bed {
+  id          String    @id @default(uuid())
+  bedNumber   String
+  status      BedStatus @default(AVAILABLE)
+  assignedDate DateTime?
+
+  roomId      String
+  room        Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model AccommodationApplication {
+  id                      String            @id @default(uuid())
+  studentId               String
+  studentName             String
+  studentIdNumber         String
+  gender                  Gender
+  college                 String
+  department              String
+  batch                   String
+  semester                String
+  specialNeeds            Boolean           @default(false)
+  specialNeedsDescription String?
+  preferredFloor          String?
+  emergencyContact        String
+  status                  ApplicationStatus @default(PENDING)
+  aiScore                 Int?
+  aiReason                String?
+  allocatedDorm           String?
+  allocatedRoom           String?
+  allocatedBed            String?
+  appliedDate             DateTime          @default(now())
+
+  user                    User              @relation(fields: [userId], references: [id])
+  userId                  String
+}
+
+model Property {
+  id           String            @id @default(uuid())
+  propertyCode String            @unique
+  name         String
+  category     String
+  buildingType String
+  buildingName String
+  roomNumber   String
+  purchaseDate DateTime
+  condition    PropertyCondition @default(GOOD)
+  serialNumber String?
+  assignedTo   String?
+  remarks      String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model MaintenanceComplaint {
+  id             String              @id @default(uuid())
+  ticketNumber   String              @unique
+  dormitoryName  String
+  roomNumber     String
+  category       MaintenanceCategory
+  description    String
+  priority       MaintenancePriority @default(MEDIUM)
+  status         MaintenanceStatus   @default(SUBMITTED)
+  imageUrl       String?
+  repairNotes    String?
+  createdAt      DateTime            @default(now())
+  completedAt    DateTime?
+
+  student        User                @relation("StudentComplaints", fields: [studentId], references: [id])
+  studentId      String
+
+  assignedStaff  User?               @relation("AssignedStaff", fields: [assignedStaffId], references: [id])
+  assignedStaffId String?
+}
+
+model SystemAuditLog {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  action    String
+  details   String
+  ipAddress String
+
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+}

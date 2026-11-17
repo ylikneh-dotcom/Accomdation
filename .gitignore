@@ -1,0 +1,66 @@
+
+# =================================
+# NODE.JS DEPENDENCIES
+# =================================
+node_modules/
+**/node_modules/
+
+# =================================
+# BUILD OUTPUT
+# =================================
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# =================================
+# ENVIRONMENT VARIABLES / SECRETS
+# =================================
+.env
+.env.*
+!.env.example
+
+# =================================
+# LOG FILES
+# =================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# =================================
+# TEMPORARY FILES
+# =================================
+*.tmp
+*.temp
+*.swp
+
+# =================================
+# WINDOWS / SYSTEM FILES
+# =================================
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# =================================
+# EDITOR FILES
+# =================================
+.vscode/
+.idea/
+
+# =================================
+# CACHE
+# =================================
+.cache/
+.parcel-cache/
+.eslintcache/
+.turbo/
+
+# =================================
+# TEST OUTPUT
+# =================================
+.nyc_output/
+playwright-report/
+test-results/

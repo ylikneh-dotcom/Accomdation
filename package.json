@@ -1,0 +1,14 @@
+{
+  "name": "wachemo-university-accommodation-system",
+  "version": "1.0.0",
+  "description": "AI-Powered University Accommodation and Property Management System for Wachemo University",
+  "scripts": {
+    "start": "node backend/dist/server.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd backend && npm run build && cd ../frontend && npm run build"
+  },
+  "keywords": ["wachemo-university", "accommodation", "dormitory", "property-management", "ethiopia", "react", "nodejs", "typescript", "postgresql"],
+  "author": "Wachemo University ICT & Student Directorate",
+  "license": "ISC"
+}
