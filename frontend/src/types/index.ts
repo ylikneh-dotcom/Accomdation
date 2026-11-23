@@ -41,6 +41,7 @@ export interface OfficialStudentRecord {
   isRegistered: boolean;
   uploadedAt: string;
   notes?: string;
+  avatar?: string;
 }
 
 export interface College {

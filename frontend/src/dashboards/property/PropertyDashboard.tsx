@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Property } from '../../types';
+import { DashboardLayout, TaskListItem } from '../../components/layout/DashboardLayout';
 import {
   getBilingual,
   formatCategory,
@@ -120,8 +121,48 @@ export const PropertyDashboard: React.FC = () => {
     link.click();
   };
 
+  const propertyTaskLists: TaskListItem[] = [
+    {
+      id: 'inventory',
+      label: 'Asset Inventory',
+      amharicLabel: 'የቋሚ ንብረት ዝርዝር',
+      icon: Package,
+      badge: `${properties.length} Items`,
+      hasChevron: true
+    },
+    {
+      id: 'add',
+      label: 'Register New Asset',
+      amharicLabel: 'አዲስ ንብረት መዝግብ',
+      icon: Plus,
+      hasChevron: true
+    },
+    {
+      id: 'locations',
+      label: 'Building Locations',
+      amharicLabel: 'የህንፃዎች መገኛ',
+      icon: Building,
+      badge: 'Active',
+      badgeColor: 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+    }
+  ];
+
+  const [activeTab, setActiveTab] = useState<'inventory' | 'add' | 'locations'>('inventory');
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-in fade-in">
+    <DashboardLayout
+      activeTab={activeTab}
+      onTabChange={(tab) => {
+        if (tab === 'add') {
+          setShowAddModal(true);
+        } else {
+          setActiveTab(tab as any);
+        }
+      }}
+      taskLists={propertyTaskLists}
+      bannerImage="/assets/images/dormitory_blocks.jpg"
+    >
+      <div className="space-y-6 animate-in fade-in">
       {/* Top Banner */}
       <div className="rounded-2xl border border-purple-200 dark:border-purple-500/30 bg-gradient-to-r from-purple-50 via-white to-purple-50 dark:from-slate-900 dark:via-[#180F28] dark:to-slate-900 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center space-x-4">
@@ -164,142 +205,204 @@ export const PropertyDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI Counters */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-slate-400">
-            {language === 'am' ? 'ጠቅላላ የተመዘገቡ ንብረቶች' : 'Total Registered Assets'}
-          </div>
-          <div className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">{totalCount}</div>
-        </div>
+      {/* Tab 1: Inventory Registry */}
+      {activeTab === 'inventory' && (
+        <div className="space-y-6 animate-in fade-in">
+          {/* KPI Counters */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                {language === 'am' ? 'ጠቅላላ የተመዘገቡ ንብረቶች' : 'Total Registered Assets'}
+              </div>
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">{totalCount}</div>
+            </div>
 
-        <div className="p-4 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-slate-400">
-            {language === 'am' ? 'በጥሩ ሁኔታ ላይ ያሉ' : 'Good / Prime Condition'}
-          </div>
-          <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{goodCount}</div>
-        </div>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                {language === 'am' ? 'በጥሩ ሁኔታ ላይ ያሉ' : 'Good / Prime Condition'}
+              </div>
+              <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{goodCount}</div>
+            </div>
 
-        <div className="p-4 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-slate-400">
-            {language === 'am' ? 'ጥገና የሚያስፈልጋቸው' : 'Requires Repair'}
-          </div>
-          <div className="text-2xl font-extrabold text-amber-500 mt-1">{repairCount}</div>
-        </div>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                {language === 'am' ? 'ጥገና የሚያስፈልጋቸው' : 'Requires Repair'}
+              </div>
+              <div className="text-2xl font-extrabold text-amber-500 mt-1">{repairCount}</div>
+            </div>
 
-        <div className="p-4 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="text-xs text-slate-500 dark:text-slate-400">
-            {language === 'am' ? 'የተበላሸ / የጠፋ' : 'Damaged / Missing'}
-          </div>
-          <div className="text-2xl font-extrabold text-red-500 mt-1">{damagedCount}</div>
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex flex-1 items-center space-x-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={language === 'am' ? 'በኮድ፣ በስም ወይም በህንጻ ፈልግ...' : 'Search by code, item name, or building...'}
-              className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
-            />
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                {language === 'am' ? 'የተበላሸ / የጠፋ' : 'Damaged / Missing'}
+              </div>
+              <div className="text-2xl font-extrabold text-red-500 mt-1">{damagedCount}</div>
+            </div>
           </div>
 
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
-          >
-            <option value="ALL">{language === 'am' ? 'ሁሉም ምድቦች' : 'All Categories'}</option>
-            <option value="DORM_BED">{formatCategory(language, 'DORM_BED')}</option>
-            <option value="FURNITURE">{formatCategory(language, 'FURNITURE')}</option>
-            <option value="ELECTRONICS">{formatCategory(language, 'ELECTRONICS')}</option>
-            <option value="LABORATORY">{formatCategory(language, 'LABORATORY')}</option>
-          </select>
+          {/* Filter and Search Bar */}
+          <div className="p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
+            <div className="flex flex-1 items-center space-x-3">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={language === 'am' ? 'በኮድ፣ በስም ወይም በህንጻ ፈልግ...' : 'Search by code, item name, or building...'}
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-purple-500"
+                />
+              </div>
 
-          <select
-            value={conditionFilter}
-            onChange={(e) => setConditionFilter(e.target.value)}
-            className="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
-          >
-            <option value="ALL">{language === 'am' ? 'ሁሉም ሁኔታዎች' : 'All Conditions'}</option>
-            <option value="EXCELLENT">{formatCondition(language, 'EXCELLENT')}</option>
-            <option value="GOOD">{formatCondition(language, 'GOOD')}</option>
-            <option value="NEEDS_REPAIR">{formatCondition(language, 'NEEDS_REPAIR')}</option>
-            <option value="DAMAGED">{formatCondition(language, 'DAMAGED')}</option>
-          </select>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="ALL">{language === 'am' ? 'ሁሉም ምድቦች' : 'All Categories'}</option>
+                <option value="DORM_BED">{formatCategory(language, 'DORM_BED')}</option>
+                <option value="FURNITURE">{formatCategory(language, 'FURNITURE')}</option>
+                <option value="ELECTRONICS">{formatCategory(language, 'ELECTRONICS')}</option>
+                <option value="LABORATORY">{formatCategory(language, 'LABORATORY')}</option>
+              </select>
+
+              <select
+                value={conditionFilter}
+                onChange={(e) => setConditionFilter(e.target.value)}
+                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="ALL">{language === 'am' ? 'ሁሉም ሁኔታዎች' : 'All Conditions'}</option>
+                <option value="EXCELLENT">{formatCondition(language, 'EXCELLENT')}</option>
+                <option value="GOOD">{formatCondition(language, 'GOOD')}</option>
+                <option value="NEEDS_REPAIR">{formatCondition(language, 'NEEDS_REPAIR')}</option>
+                <option value="DAMAGED">{formatCondition(language, 'DAMAGED')}</option>
+              </select>
+            </div>
+
+            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono font-bold">
+              {language === 'am' ? `${filteredProperties.length} ንብረቶች ተገኝተዋል` : `${filteredProperties.length} Assets Found`}
+            </div>
+          </div>
+
+          {/* Properties Table */}
+          <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm">
+            <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+              <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase border-b border-slate-200 dark:border-slate-800">
+                <tr>
+                  <th className="py-3 px-4">{language === 'am' ? 'የንብረት ኮድ' : 'Property Code'}</th>
+                  <th className="py-3 px-4">{language === 'am' ? 'የእቃው ስም' : 'Item Name'}</th>
+                  <th className="py-3 px-4">{language === 'am' ? 'ምድብ' : 'Category'}</th>
+                  <th className="py-3 px-4">{language === 'am' ? 'የአሁን ቦታ' : 'Current Location'}</th>
+                  <th className="py-3 px-4">{language === 'am' ? 'ሁኔታ' : 'Condition'}</th>
+                  <th className="py-3 px-4">{language === 'am' ? 'ኃላፊ / ተጠቃሚ' : 'Assigned To'}</th>
+                  <th className="py-3 px-4 text-right">{language === 'am' ? 'እርምጃዎች' : 'Actions'}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                {filteredProperties.map((p) => (
+                  <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                    <td className="py-3 px-4 font-mono font-bold text-purple-700 dark:text-purple-300">
+                      {p.propertyCode}
+                    </td>
+                    <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">
+                      {p.name}
+                      {p.serialNumber && (
+                        <div className="text-[10px] text-slate-400 font-mono">SN: {p.serialNumber}</div>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {formatCategory(language, p.category)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div>{p.buildingName}</div>
+                      <div className="text-[10px] text-slate-400">{p.roomNumber}</div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        p.condition === 'EXCELLENT' ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' :
+                        p.condition === 'GOOD' ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300' :
+                        p.condition === 'NEEDS_REPAIR' ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300' :
+                        'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300'
+                      }`}>
+                        {formatCondition(language, p.condition)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
+                      {p.assignedTo || '-'}
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={() => setTransferTarget(p)}
+                        className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 dark:bg-purple-950 dark:hover:bg-purple-900 dark:text-purple-300 rounded-lg text-[11px] font-semibold border border-purple-200 dark:border-purple-800 transition cursor-pointer"
+                      >
+                        {language === 'am' ? 'አዘዋውር' : 'Transfer'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+      )}
 
-        <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-          {language === 'am' ? `${filteredProperties.length} ንብረቶች ተገኝተዋል` : `${filteredProperties.length} Assets Found`}
+      {/* Tab 2: Campus Buildings & Property Locations */}
+      {activeTab === 'locations' && (
+        <div className="space-y-6 animate-in fade-in max-w-5xl mx-auto">
+          <div className="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400">
+                <Building className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                  {language === 'am' ? 'የህንፃዎችና ክፍሎች የንብረት ስርጭት' : 'Campus Buildings & Asset Location Distribution'}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {language === 'am' ? 'ንብረቶች በተመደቡባቸው ህንፃዎችና ወለሎች የተደራጁበት ካርታ' : 'Audited property counts mapped across student dormitories and academic facilities.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+              {[
+                { name: 'Block 45 - Tewodros Hall (Men)', amharic: 'ብሎክ 45 - ቴዎድሮስ አዳራሽ (ወንዶች)', items: 340, good: 310, repair: 25, damaged: 5 },
+                { name: 'Block 46 - Taytu Hall (Women)', amharic: 'ብሎክ 46 - ጣይቱ አዳራሽ (ሴቶች)', items: 320, good: 298, repair: 18, damaged: 4 },
+                { name: 'Main Campus Central Library', amharic: 'የዋና ግቢ ማዕከላዊ ቤተ-መጽሐፍት', items: 185, good: 175, repair: 8, damaged: 2 },
+                { name: 'Technology & ICT Engineering Labs', amharic: 'የቴክኖሎጂና አይሲቲ ላቦራቶሪዎች', items: 210, good: 195, repair: 12, damaged: 3 },
+                { name: 'Administrative Building & Proctor Offices', amharic: 'የአስተዳደር ህንጻና የፕሮክተር ቢሮዎች', items: 95, good: 90, repair: 4, damaged: 1 }
+              ].map((loc, idx) => (
+                <div key={idx} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-900 dark:text-white leading-tight">
+                      {language === 'am' ? loc.amharic : loc.name}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                      {loc.items} {language === 'am' ? 'እቃዎች' : 'Items'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+                    <div className="p-1.5 bg-emerald-50 dark:bg-emerald-950/60 rounded border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300">
+                      <div className="font-bold">{loc.good}</div>
+                      <div>{language === 'am' ? 'ጥሩ' : 'Good'}</div>
+                    </div>
+                    <div className="p-1.5 bg-amber-50 dark:bg-amber-950/60 rounded border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300">
+                      <div className="font-bold">{loc.repair}</div>
+                      <div>{language === 'am' ? 'ጥገና' : 'Repair'}</div>
+                    </div>
+                    <div className="p-1.5 bg-red-50 dark:bg-red-950/60 rounded border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300">
+                      <div className="font-bold">{loc.damaged}</div>
+                      <div>{language === 'am' ? 'ብልሽት' : 'Damaged'}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Properties Table */}
-      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm">
-        <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
-          <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 font-mono text-[10px] uppercase border-b border-slate-200 dark:border-slate-800">
-            <tr>
-              <th className="py-3 px-4">{language === 'am' ? 'የንብረት ኮድ' : 'Property Code'}</th>
-              <th className="py-3 px-4">{language === 'am' ? 'የእቃው ስም' : 'Item Name'}</th>
-              <th className="py-3 px-4">{language === 'am' ? 'ምድብ' : 'Category'}</th>
-              <th className="py-3 px-4">{language === 'am' ? 'የአሁን ቦታ' : 'Current Location'}</th>
-              <th className="py-3 px-4">{language === 'am' ? 'ሁኔታ' : 'Condition'}</th>
-              <th className="py-3 px-4">{language === 'am' ? 'ኃላፊ / ተጠቃሚ' : 'Assigned To'}</th>
-              <th className="py-3 px-4 text-right">{language === 'am' ? 'እርምጃዎች' : 'Actions'}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-            {filteredProperties.map((p) => (
-              <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                <td className="py-3 px-4 font-mono font-bold text-purple-700 dark:text-purple-300">
-                  {p.propertyCode}
-                </td>
-                <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">
-                  {p.name}
-                  {p.serialNumber && (
-                    <div className="text-[10px] text-slate-400 font-mono">SN: {p.serialNumber}</div>
-                  )}
-                </td>
-                <td className="py-3 px-4">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                    {formatCategory(language, p.category)}
-                  </span>
-                </td>
-                <td className="py-3 px-4">
-                  <div>{p.buildingName}</div>
-                  <div className="text-[10px] text-slate-400">{p.roomNumber}</div>
-                </td>
-                <td className="py-3 px-4">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                    p.condition === 'EXCELLENT' ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' :
-                    p.condition === 'GOOD' ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300' :
-                    p.condition === 'NEEDS_REPAIR' ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300' :
-                    'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300'
-                  }`}>
-                    {formatCondition(language, p.condition)}
-                  </span>
-                </td>
-                <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
-                  {p.assignedTo || '-'}
-                </td>
-                <td className="py-3 px-4 text-right">
-                  <button
-                    onClick={() => setTransferTarget(p)}
-                    className="px-2 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 dark:bg-purple-950 dark:hover:bg-purple-900 dark:text-purple-300 rounded text-[11px] font-semibold border border-purple-200 dark:border-purple-800 transition cursor-pointer"
-                  >
-                    {language === 'am' ? 'አዘዋውር' : 'Transfer'}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      )}
 
       {/* Transfer Property Modal */}
       {transferTarget && (
@@ -468,6 +571,7 @@ export const PropertyDashboard: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { DashboardLayout, TaskListItem } from '../../components/layout/DashboardLayout';
 import {
   getBilingual,
   getStudentName,
@@ -32,7 +33,8 @@ import {
   QrCode,
   ShieldCheck,
   ChevronRight,
-  BedDouble
+  BedDouble,
+  Camera
 } from 'lucide-react';
 
 export const StudentDashboard: React.FC = () => {
@@ -46,9 +48,28 @@ export const StudentDashboard: React.FC = () => {
     complaints, 
     rooms, 
     applyForAccommodation, 
-    submitComplaint 
+    submitComplaint,
+    updateUserProfileAvatar
   } = useAuth();
   const { language, t } = useLanguage();
+
+  // Photo Update State
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [photoUpdateMsg, setPhotoUpdateMsg] = useState('');
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        updateUserProfileAvatar(base64);
+        setPhotoUpdateMsg(language === 'am' ? 'የፕሮፋይል ፎቶዎ በተሳካ ሁኔታ ተቀይሯል::' : 'Profile photo updated successfully.');
+        setTimeout(() => setPhotoUpdateMsg(''), 3000);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Active sub-tab
   const [activeTab, setActiveTab] = useState<'profile_dorm' | 'apply' | 'transfer' | 'complaints' | 'ai_chat'>('profile_dorm');
@@ -238,20 +259,90 @@ export const StudentDashboard: React.FC = () => {
     return bedStr;
   };
 
+  const studentTaskLists: TaskListItem[] = [
+    {
+      id: 'profile_dorm',
+      label: 'My Room & Profile',
+      amharicLabel: 'የእኔ ክፍልና መረጃ',
+      icon: Home,
+      hasChevron: true
+    },
+    {
+      id: 'apply',
+      label: 'Accommodation Application',
+      amharicLabel: 'የማደሪያ ማመልከቻ',
+      icon: FileText,
+      hasChevron: true
+    },
+    {
+      id: 'transfer',
+      label: 'Room Transfer Request',
+      amharicLabel: 'የክፍል ቅያሬ ጥያቄ',
+      icon: RefreshCw,
+      hasChevron: true
+    },
+    {
+      id: 'complaints',
+      label: 'Maintenance Complaints',
+      amharicLabel: 'የጥገና ቅሬታ ዴስክ',
+      icon: Wrench,
+      badge: `${complaints.filter(c => c.studentId === currentUser?.studentId).length || 1}`,
+      badgeColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/40',
+      hasChevron: true
+    },
+    {
+      id: 'ai_chat',
+      label: 'AI Accommodation Assistant',
+      amharicLabel: 'አይ-ማደሪያ ረዳት',
+      icon: Bot
+    }
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-in fade-in">
+    <DashboardLayout
+      activeTab={activeTab}
+      onTabChange={(tab) => setActiveTab(tab as any)}
+      taskLists={studentTaskLists}
+      bannerImage="/assets/images/dormitory_blocks.jpg"
+    >
+      <div className="space-y-6 animate-in fade-in">
       {/* Student Profile Card Header */}
       <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-cyan-500/30 p-6 bg-gradient-to-r from-slate-100 via-white to-slate-100 dark:from-slate-900 dark:via-[#0A1329] dark:to-slate-900 shadow-xl">
+        {photoUpdateMsg && (
+          <div className="mb-3 px-3.5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-md flex items-center space-x-2 animate-in fade-in">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{photoUpdateMsg}</span>
+          </div>
+        )}
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
-            <div className="relative">
+            {/* Student Verified Profile Photo with Upload Trigger */}
+            <div className="relative group shrink-0">
+              <input
+                type="file"
+                ref={avatarInputRef}
+                onChange={handleAvatarUpload}
+                accept="image/png, image/jpeg, image/jpg, image/webp"
+                className="hidden"
+                id="student-avatar-update-input"
+              />
               <img 
                 src={currentUser?.avatar || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150'} 
                 alt="Student Avatar" 
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-cyan-500 dark:border-cyan-400 shadow-md"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-cyan-500 dark:border-cyan-400 shadow-md group-hover:brightness-90 transition"
               />
-              <div className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 rounded-full text-white" title="Officially Verified">
-                <CheckCircle2 className="w-4 h-4" />
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="absolute inset-0 rounded-2xl bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                title={language === 'am' ? 'ፎቶ ቀይር' : 'Update Photo'}
+              >
+                <Camera className="w-5 h-5 mb-0.5" />
+                <span className="text-[9px] font-bold">{language === 'am' ? 'ቀይር' : 'Edit'}</span>
+              </button>
+              <div className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 rounded-full text-white shadow-sm" title="Officially Verified Student Photo">
+                <CheckCircle2 className="w-3.5 h-3.5" />
               </div>
             </div>
 
@@ -273,7 +364,7 @@ export const StudentDashboard: React.FC = () => {
               </div>
               <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center space-x-1 font-mono">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                <span>{language === 'am' ? 'በሬጅስትራር ይፋዊ መዝገብ የተረጋገጠ ማንነት' : 'Officially Verified Identity Against Registrar List'}</span>
+                <span>{language === 'am' ? 'በሬጅስትራር ይፋዊ መዝገብ የተረጋገጠ ማንነትና ፎቶ' : 'Officially Verified Identity & ID Photo'}</span>
               </div>
             </div>
           </div>
@@ -298,72 +389,6 @@ export const StudentDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Sub Navigation */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-2 sm:space-x-4 overflow-x-auto pb-1 text-xs sm:text-sm font-semibold">
-        <button
-          onClick={() => setActiveTab('profile_dorm')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition ${
-            activeTab === 'profile_dorm'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <Home className="w-4 h-4" />
-          <span>{language === 'am' ? 'የተመደበው ዶርም' : 'Assigned Dormitory & Room'}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('apply')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition ${
-            activeTab === 'apply'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <FileText className="w-4 h-4" />
-          <span>{language === 'am' ? 'የዶርም ማመልከቻ' : 'Apply for Dormitory'}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('transfer')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition ${
-            activeTab === 'transfer'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <RefreshCw className="w-4 h-4" />
-          <span>{language === 'am' ? 'ክፍል ቅያሬ' : 'Room Transfer Request'}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('complaints')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition ${
-            activeTab === 'complaints'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <Wrench className="w-4 h-4" />
-          <span>{language === 'am' ? 'የጥገና ሪፖርት' : 'Maintenance Complaints'}</span>
-          <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-400 font-mono font-bold">
-            {myComplaints.length}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('ai_chat')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition ${
-            activeTab === 'ai_chat'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <Bot className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
-          <span>{language === 'am' ? 'አይ-ረዳት (AI Chatbot)' : 'AI Housing Assistant'}</span>
-        </button>
-      </div>
-
       {/* ==================================================== */}
       {/* TAB 1: ASSIGNED DORMITORY & ROOMMATES */}
       {/* ==================================================== */}
@@ -372,13 +397,13 @@ export const StudentDashboard: React.FC = () => {
           {/* Main Dorm Card with authentic uploaded image */}
           <div className="lg:col-span-2 space-y-6">
             <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-md">
-              <div className="relative h-60 w-full overflow-hidden">
+              <div className="relative h-64 w-full overflow-hidden">
                 <img 
                   src="/assets/images/dormitory_blocks.jpg" 
                   alt="Wachemo University Dormitory Blocks" 
-                  className="w-full h-full object-cover hover:scale-105 transition duration-500 brightness-105"
+                  className="w-full h-full object-cover object-center hover:scale-105 transition duration-500 brightness-105 contrast-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 via-30% to-transparent to-60%"></div>
                 
                 <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                   <div>
@@ -890,6 +915,7 @@ export const StudentDashboard: React.FC = () => {
           </form>
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };

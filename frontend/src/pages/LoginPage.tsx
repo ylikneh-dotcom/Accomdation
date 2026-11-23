@@ -54,15 +54,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToHome, onGoToRegist
   return (
     <div className="relative min-h-[calc(100vh-3.5rem)] flex items-center justify-center px-4 py-8 sm:py-12 overflow-hidden">
       
-      {/* High-Brightness Campus Image Background */}
+      {/* High-Brightness & Crisp Campus Image Background */}
       <div className="absolute inset-0 pointer-events-none">
         <img
           src="/assets/images/campus_gate.jpg"
           alt="Wachemo Campus"
-          className="w-full h-full object-cover brightness-110 contrast-105"
+          className="w-full h-full object-cover brightness-105 contrast-105"
         />
-        {/* Responsive translucent overlay to guarantee high-contrast readability */}
-        <div className="absolute inset-0 bg-white/40 dark:bg-black/60 backdrop-blur-[2px]" />
+        {/* Subtle non-blurring overlay to guarantee crisp photo clarity */}
+        <div className="absolute inset-0 bg-white/20 dark:bg-black/30" />
       </div>
 
       <div className="relative z-10 w-full max-w-md mx-auto">

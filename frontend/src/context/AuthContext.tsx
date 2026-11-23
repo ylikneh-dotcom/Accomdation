@@ -54,7 +54,10 @@ interface AuthContextType {
     batch: string;
     semester: string;
     password: string;
+    avatar?: string;
+    photo?: string;
   }) => VerificationResult;
+  updateUserProfileAvatar: (avatarUrl: string) => void;
 
   // Admin Data Management
   colleges: College[];
@@ -292,6 +295,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     batch: string;
     semester: string;
     password: string;
+    avatar?: string;
+    photo?: string;
   }): VerificationResult => {
     const cleanId = data.studentId.trim().toUpperCase();
     const cleanName = data.fullName.trim().toLowerCase();
@@ -344,7 +349,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
 
-    // 4. Exact Match: Verify and approve student account
+    // 4. Exact Match: Verify and approve student account with their uploaded photo
+    const studentAvatar = data.avatar || data.photo || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
     const newStudentUser: User = {
       id: `user-stu-${Date.now()}`,
       name: officialRecord.fullName,
@@ -356,13 +362,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       semester: officialRecord.semester,
       phone: '+251 900 000000',
       password: data.password,
+      avatar: studentAvatar,
       status: 'ACTIVE'
     };
 
-    // Update official roster entry to registered & verified
+    // Update official roster entry to registered & verified with their photo
     setOfficialStudents(prev => prev.map(s =>
       s.id === officialRecord.id
-        ? { ...s, status: 'VERIFIED', isRegistered: true }
+        ? { ...s, status: 'VERIFIED', isRegistered: true, avatar: studentAvatar }
         : s
     ));
 
@@ -370,13 +377,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAllUsers(prev => [...prev, newStudentUser]);
     setCurrentUser(newStudentUser);
 
-    logAudit('STUDENT_VERIFIED_REGISTERED', `Student ${officialRecord.fullName} (${cleanId}) successfully verified against official list and account activated.`);
+    logAudit('STUDENT_VERIFIED_REGISTERED', `Student ${officialRecord.fullName} (${cleanId}) successfully verified against official list with uploaded profile photo.`);
 
     return {
       success: true,
       message: 'Official Verification Confirmed! Identity matched Wachemo University registrar records. Welcome to your Student Accommodation Portal.',
       matchedRecord: officialRecord
     };
+  };
+
+  const updateUserProfileAvatar = (avatarUrl: string) => {
+    if (currentUser) {
+      const updated = { ...currentUser, avatar: avatarUrl };
+      setCurrentUser(updated);
+      setAllUsers(prev => prev.map(u => u.id === currentUser.id ? updated : u));
+      if (currentUser.studentId) {
+        setOfficialStudents(prev => prev.map(s =>
+          s.studentId.toUpperCase() === currentUser.studentId?.toUpperCase()
+            ? { ...s, avatar: avatarUrl }
+            : s
+        ));
+      }
+      logAudit('STUDENT_PROFILE_PHOTO_UPDATED', `User ${currentUser.name} updated profile photo.`);
+    }
   };
 
   // Super Admin Roster Management
@@ -682,6 +705,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         switchRole,
         officialStudents,
         registerAndVerifyStudent,
+        updateUserProfileAvatar,
         colleges,
         departments,
         batches,

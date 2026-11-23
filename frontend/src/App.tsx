@@ -15,46 +15,53 @@ import { MaintenanceDashboard } from './dashboards/maintenance/MaintenanceDashbo
 
 type ViewState = 'home' | 'login' | 'register';
 
-const MainContent: React.FC = () => {
+const AppContent: React.FC = () => {
   const { currentUser, role } = useAuth();
   const [currentView, setCurrentView] = useState<ViewState>('home');
 
-  // If user is logged in, show their role dashboard
+  // If user is logged in, show their role dashboard (no global header — DashboardLayout provides its own)
   if (currentUser && role) {
     return (
-      <main className="min-h-[calc(100vh-4.5rem)] pb-12">
+      <div className="min-h-screen bg-white dark:bg-[#030712] text-slate-900 dark:text-slate-100 font-sans selection:bg-cyan-500 selection:text-black transition-colors duration-200">
         {role === 'SUPER_ADMIN' && <SuperAdminDashboard />}
         {role === 'STUDENT' && <StudentDashboard />}
         {role === 'DORMITORY_MANAGER' && <DormitoryDashboard />}
         {role === 'ACCOMMODATION_OFFICER' && <AccommodationDashboard />}
         {role === 'PROPERTY_MANAGER' && <PropertyDashboard />}
         {role === 'MAINTENANCE_STAFF' && <MaintenanceDashboard />}
-      </main>
+      </div>
     );
   }
 
-  // Not logged in: show Home, Login, or Register page
+  // Home page has its own integrated navbar — no global Header needed
+  if (currentView === 'home') {
+    return (
+      <HomePage
+        onNavigateToLogin={() => setCurrentView('login')}
+        onNavigateToRegister={() => setCurrentView('register')}
+      />
+    );
+  }
+
+  // Login and Register pages use the shared Header for consistent branding
   return (
-    <main className="min-h-[calc(100vh-4.5rem)]">
-      {currentView === 'home' && (
-        <HomePage
-          onNavigateToLogin={() => setCurrentView('login')}
-          onNavigateToRegister={() => setCurrentView('register')}
-        />
-      )}
-      {currentView === 'login' && (
-        <LoginPage
-          onBackToHome={() => setCurrentView('home')}
-          onGoToRegister={() => setCurrentView('register')}
-        />
-      )}
-      {currentView === 'register' && (
-        <RegisterPage
-          onBackToHome={() => setCurrentView('home')}
-          onGoToLogin={() => setCurrentView('login')}
-        />
-      )}
-    </main>
+    <div className="min-h-screen bg-white dark:bg-[#030712] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black transition-colors duration-200">
+      <Header onNavigateHome={() => setCurrentView('home')} />
+      <div className="flex-1">
+        {currentView === 'login' && (
+          <LoginPage
+            onBackToHome={() => setCurrentView('home')}
+            onGoToRegister={() => setCurrentView('register')}
+          />
+        )}
+        {currentView === 'register' && (
+          <RegisterPage
+            onBackToHome={() => setCurrentView('home')}
+            onGoToLogin={() => setCurrentView('login')}
+          />
+        )}
+      </div>
+    </div>
   );
 };
 
@@ -63,12 +70,7 @@ export const App: React.FC = () => {
     <ThemeProvider>
       <LanguageProvider>
         <AuthProvider>
-          <div className="min-h-screen bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black transition-colors duration-200">
-            <Header />
-            <div className="flex-1">
-              <MainContent />
-            </div>
-          </div>
+          <AppContent />
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>

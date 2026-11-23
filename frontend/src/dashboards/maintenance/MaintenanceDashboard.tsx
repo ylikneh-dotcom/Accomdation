@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { MaintenanceComplaint } from '../../types';
+import { DashboardLayout, TaskListItem } from '../../components/layout/DashboardLayout';
 import {
   getBilingual,
   getStudentName,
@@ -77,8 +78,51 @@ export const MaintenanceDashboard: React.FC = () => {
     }
   };
 
+  const maintenanceTaskLists: TaskListItem[] = [
+    {
+      id: 'ALL',
+      label: 'All Work Orders',
+      amharicLabel: 'ሁሉንም የስራ ትዕዛዞች',
+      icon: Wrench,
+      badge: `${complaints.length}`,
+      hasChevron: true
+    },
+    {
+      id: 'ASSIGNED',
+      label: 'Assigned Tickets',
+      amharicLabel: 'የተመደቡ ጥገናዎች',
+      icon: Clock,
+      badge: `${complaints.filter(c => c.status === 'ASSIGNED').length}`,
+      badgeColor: 'bg-blue-500/20 text-blue-300 border border-blue-500/40',
+      hasChevron: true
+    },
+    {
+      id: 'IN_PROGRESS',
+      label: 'In Progress Repairs',
+      amharicLabel: 'በሂደት ላይ ያሉ',
+      icon: AlertCircle,
+      badge: `${inProgressCount}`,
+      badgeColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/40',
+      hasChevron: true
+    },
+    {
+      id: 'COMPLETED',
+      label: 'Completed Logs',
+      amharicLabel: 'የተጠናቀቁ ጥገናዎች',
+      icon: CheckCircle2,
+      badge: `${completedCount}`,
+      badgeColor: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+    }
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-in fade-in">
+    <DashboardLayout
+      activeTab={activeFilter}
+      onTabChange={(tab) => setActiveFilter(tab as any)}
+      taskLists={maintenanceTaskLists}
+      bannerImage="/assets/images/dormitory_blocks.jpg"
+    >
+      <div className="space-y-6 animate-in fade-in">
       {/* Top Banner */}
       <div className="rounded-2xl border border-orange-200 dark:border-orange-500/30 bg-gradient-to-r from-orange-50 via-white to-orange-50 dark:from-slate-900 dark:via-[#261508] dark:to-slate-900 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center space-x-4">
@@ -129,42 +173,6 @@ export const MaintenanceDashboard: React.FC = () => {
           <span>{actionMsg}</span>
         </div>
       )}
-
-      {/* Filter Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-2 text-xs font-semibold">
-        <button
-          onClick={() => setActiveFilter('ALL')}
-          className={`py-2 px-3 border-b-2 transition cursor-pointer ${
-            activeFilter === 'ALL' ? 'border-orange-500 text-orange-600 dark:text-orange-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
-          }`}
-        >
-          {language === 'am' ? `ሁሉም ጥያቄዎች (${complaints.length})` : `All Complaints (${complaints.length})`}
-        </button>
-        <button
-          onClick={() => setActiveFilter('ASSIGNED')}
-          className={`py-2 px-3 border-b-2 transition cursor-pointer ${
-            activeFilter === 'ASSIGNED' ? 'border-orange-500 text-orange-600 dark:text-orange-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
-          }`}
-        >
-          {language === 'am' ? 'የተመደቡ ስራዎች' : 'Assigned Tasks'}
-        </button>
-        <button
-          onClick={() => setActiveFilter('IN_PROGRESS')}
-          className={`py-2 px-3 border-b-2 transition cursor-pointer ${
-            activeFilter === 'IN_PROGRESS' ? 'border-orange-500 text-orange-600 dark:text-orange-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
-          }`}
-        >
-          {language === 'am' ? `በሂደት ላይ (${inProgressCount})` : `In Progress (${inProgressCount})`}
-        </button>
-        <button
-          onClick={() => setActiveFilter('COMPLETED')}
-          className={`py-2 px-3 border-b-2 transition cursor-pointer ${
-            activeFilter === 'COMPLETED' ? 'border-orange-500 text-orange-600 dark:text-orange-400' : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'
-          }`}
-        >
-          {language === 'am' ? `የተጠናቀቁ (${completedCount})` : `Completed (${completedCount})`}
-        </button>
-      </div>
 
       {/* Tickets Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -308,6 +316,7 @@ export const MaintenanceDashboard: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };

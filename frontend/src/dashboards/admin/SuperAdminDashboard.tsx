@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import { OfficialStudentRecord, College, Department, User, UserRole } from '../../types';
-import { 
-  Users, 
-  Upload, 
-  Plus, 
-  Trash2, 
-  CheckCircle, 
-  AlertTriangle, 
-  Download, 
-  Building, 
-  BookOpen, 
-  Settings, 
-  Search, 
-  Database, 
-  Activity, 
-  UserPlus, 
-  ShieldCheck, 
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import {
+  Users,
+  Upload,
+  Plus,
+  Trash2,
+  CheckCircle,
+  AlertTriangle,
+  Download,
+  Building,
+  BookOpen,
+  Settings,
+  Search,
+  Database,
+  Activity,
+  UserPlus,
+  ShieldCheck,
   BarChart3,
   Layers,
   Edit,
@@ -28,31 +30,38 @@ import {
   Building2,
   Wrench,
   Package,
-  UserCheck
+  UserCheck,
+  Menu,
+  ChevronDown,
+  LayoutDashboard,
+  Bed,
+  Landmark,
+  ArrowRight,
+  PieChart as PieChartIcon
 } from 'lucide-react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
 
 export const SuperAdminDashboard: React.FC = () => {
-  const { 
-    officialStudents, 
-    colleges, 
-    departments, 
-    batches, 
-    semesters, 
-    dormitories, 
-    properties, 
-    complaints, 
+  const {
+    officialStudents,
+    colleges,
+    departments,
+    batches,
+    semesters,
+    dormitories,
+    properties,
+    complaints,
     applications,
     auditLogs,
     allUsers,
@@ -71,9 +80,12 @@ export const SuperAdminDashboard: React.FC = () => {
     updateStaffUser
   } = useAuth();
   const { language, t } = useLanguage();
+  const { theme } = useTheme();
 
-  // Active sub-tab
-  const [activeTab, setActiveTab] = useState<'analytics' | 'roster' | 'academics' | 'staff' | 'audit' | 'settings'>('analytics');
+  // Active sub-tab (defaults to 'dashboard' matching the reference mockup)
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'analytics' | 'roster' | 'dormitories' | 'academics' | 'staff' | 'audit' | 'settings'>('dashboard');
+  const [showListsMenu, setShowListsMenu] = useState(false);
+  const [distributionSemester, setDistributionSemester] = useState('This Semester');
 
   // Search & Filter for Official Student Roster
   const [searchQuery, setSearchQuery] = useState('');
@@ -174,7 +186,7 @@ export const SuperAdminDashboard: React.FC = () => {
   // Filtered Students
   const filteredStudents = officialStudents.filter(s => {
     const query = searchQuery.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       s.fullName.toLowerCase().includes(query) ||
       (s.amharicName && s.amharicName.includes(query)) ||
       s.studentId.toLowerCase().includes(query) ||
@@ -197,10 +209,10 @@ export const SuperAdminDashboard: React.FC = () => {
   // Chart data: Students by College
   const studentsByCollegeData = colleges.map(col => {
     const count = officialStudents.filter(s => s.collegeName === col.name).length;
-    return { 
-      name: col.code, 
-      fullName: language === 'am' ? col.amharicName : col.name, 
-      count 
+    return {
+      name: col.code,
+      fullName: language === 'am' ? col.amharicName : col.name,
+      count
     };
   });
 
@@ -222,7 +234,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
     if (officialStudents.some(s => s.studentId.toUpperCase() === newStudentId.trim().toUpperCase())) {
       setManualAddError(
-        language === 'am' 
+        language === 'am'
           ? `የተማሪ መታወቂያ ${newStudentId} ቀደም ሲል በመዝገቡ ውስጥ ይገኛል::`
           : `Duplicate Error: Student ID ${newStudentId} already exists in the official roster.`
       );
@@ -281,7 +293,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
       lines.forEach((line, index) => {
         if (index === 0 && line.toLowerCase().includes('student')) return;
-        
+
         const parts = line.split(',').map(p => p.trim());
         if (parts.length >= 4) {
           parsedRecords.push({
@@ -323,7 +335,7 @@ export const SuperAdminDashboard: React.FC = () => {
   // Export roster to CSV
   const exportToCSV = () => {
     const headers = 'Student ID,Full Name (EN),Full Name (AM),College,Department,Batch,Semester,Gender,Status,Is Registered\n';
-    const rows = officialStudents.map(s => 
+    const rows = officialStudents.map(s =>
       `"${s.studentId}","${s.fullName}","${s.amharicName || s.fullName}","${s.collegeName}","${s.departmentName}","${s.batch}","${s.semester}","${s.gender}","${s.status}","${s.isRegistered}"`
     ).join('\n');
 
@@ -346,9 +358,9 @@ export const SuperAdminDashboard: React.FC = () => {
       description: newCollegeDesc.trim(),
       isActive: true
     });
-    setCollegeMsg({ 
-      text: language === 'am' ? `${newCollegeName} ኮሌጅ በተሳካ ሁኔታ ተፈጥሯል!` : `College ${newCollegeName} created successfully!`, 
-      error: false 
+    setCollegeMsg({
+      text: language === 'am' ? `${newCollegeName} ኮሌጅ በተሳካ ሁኔታ ተፈጥሯል!` : `College ${newCollegeName} created successfully!`,
+      error: false
     });
     setNewCollegeName('');
     setNewCollegeCode('');
@@ -397,9 +409,9 @@ export const SuperAdminDashboard: React.FC = () => {
       code: newDeptCode.trim().toUpperCase(),
       isActive: true
     });
-    setDeptMsg({ 
-      text: language === 'am' ? `${newDeptName} ዲፓርትመንት በ${parentCol.amharicName} ስር ተፈጥሯል!` : `Department ${newDeptName} created under ${parentCol.name}!`, 
-      error: false 
+    setDeptMsg({
+      text: language === 'am' ? `${newDeptName} ዲፓርትመንት በ${parentCol.amharicName} ስር ተፈጥሯል!` : `Department ${newDeptName} created under ${parentCol.name}!`,
+      error: false
     });
     setNewDeptName('');
     setNewDeptCode('');
@@ -481,153 +493,429 @@ export const SuperAdminDashboard: React.FC = () => {
     showToast(language === 'am' ? 'የሰራተኛው መረጃ ተሻሽሏል!' : 'Staff details updated successfully!');
   };
 
+  // Chart data: 4 colleges matching the reference mockup
+  const collegeBarChartData = [
+    { name: language === 'am' ? 'ኢንጂነሪንግ' : 'Engineering', count: 3, color: '#0284c7' },
+    { name: language === 'am' ? 'ቢዝነስ' : 'Business', count: 2, color: '#06b6d4' },
+    { name: language === 'am' ? 'ጤና ሳይንስ' : 'Health Sciences', count: 1, color: '#d946ef' },
+    { name: language === 'am' ? 'ማህበራዊ ሳይንስ' : 'Social Sciences', count: 1, color: '#f59e0b' }
+  ];
+
+  // Navigation Lists definition for the Left Sidebar & Three Dashed Line (☰) Task List
+  const adminTaskLists = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      amharicLabel: 'ዳሽቦርድ',
+      icon: LayoutDashboard,
+      hasChevron: true
+    },
+    {
+      id: 'analytics',
+      label: 'Analytics',
+      amharicLabel: 'ስታቲስቲክስ',
+      icon: BarChart3,
+      hasChevron: true
+    },
+    {
+      id: 'roster',
+      label: 'Students',
+      amharicLabel: 'ተማሪዎች',
+      icon: Users,
+      badge: `${totalOfficial}`,
+      badgeColor: 'bg-blue-500/20 text-cyan-300 border border-blue-500/40',
+      hasChevron: true
+    },
+    {
+      id: 'dormitories',
+      label: 'Dormitories',
+      amharicLabel: 'ዶርሞች',
+      icon: Bed,
+      badge: `${dormitories.length} Blocks`,
+      badgeColor: 'bg-amber-500/20 text-amber-300 border border-amber-500/40',
+      hasChevron: true
+    },
+    {
+      id: 'staff',
+      label: 'Staff',
+      amharicLabel: 'ሰራተኞች',
+      icon: Building2,
+      badge: `${allUsers.filter(u => u.role !== 'STUDENT').length}`,
+      badgeColor: 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+    },
+    {
+      id: 'academics',
+      label: 'Colleges & Departments',
+      amharicLabel: 'ኮሌጆችና ክፍሎች',
+      icon: Landmark,
+      badge: `${colleges.length}/${departments.length}`,
+      badgeColor: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+    },
+    {
+      id: 'audit',
+      label: 'Audit Trail',
+      amharicLabel: 'የእንቅስቃሴ መዝገብ',
+      icon: Activity,
+      badge: `${auditLogs.length}`,
+      badgeColor: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
+    },
+    {
+      id: 'settings',
+      label: 'System Settings',
+      amharicLabel: 'የሲስተም ቅንብሮች',
+      icon: Settings
+    }
+  ];
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-      
-      {/* Toast Notification */}
-      {toastMsg && (
-        <div className="fixed top-20 right-6 z-50 px-4 py-3 bg-emerald-600 text-white text-xs sm:text-sm font-bold rounded-xl shadow-2xl flex items-center space-x-2 animate-in fade-in slide-in-from-top-4">
-          <CheckCircle className="w-4 h-4 shrink-0" />
-          <span>{toastMsg}</span>
-        </div>
-      )}
+    <DashboardLayout
+      activeTab={activeTab}
+      onTabChange={(tab) => setActiveTab(tab as any)}
+      taskLists={adminTaskLists}
+      bannerImage="/assets/images/dormitory_blocks.jpg"
+    >
+      <div className="space-y-6">
 
-      {/* Top Banner with Campus Imagery */}
-      <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-cyan-500/30 p-6 sm:p-8 bg-gradient-to-r from-slate-100 via-white to-slate-100 dark:from-slate-900 dark:via-slate-900/90 dark:to-[#0A1329] shadow-xl">
-        <div 
-          className="absolute inset-0 opacity-15 bg-cover bg-center mix-blend-overlay"
-          style={{ backgroundImage: "url('/assets/images/campus_fountain.jpg')" }}
-        />
+        {/* Toast Notification */}
+        {toastMsg && (
+          <div className="fixed top-20 right-6 z-50 px-4 py-3 bg-emerald-600 text-white text-xs sm:text-sm font-bold rounded-xl shadow-2xl flex items-center space-x-2 animate-in fade-in slide-in-from-top-4">
+            <CheckCircle className="w-4 h-4 shrink-0" />
+            <span>{toastMsg}</span>
+          </div>
+        )}
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-500 dark:text-amber-400">
-              <ShieldCheck className="w-8 h-8" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-                  {t('admin.commandConsole')}
-                </h2>
-                <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/40">
-                  {t('admin.fullPrivileges')}
-                </span>
+        {/* ==================================================== */}
+        {/* TAB 0: DASHBOARD OVERVIEW (PIXEL-PERFECT USER MOCKUP) */}
+        {/* ==================================================== */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-5 animate-in fade-in">
+            {/* 1. Super Admin Command Console Header Bar */}
+            <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-blue-500/30 p-5 sm:p-6 bg-white dark:bg-gradient-to-r dark:from-slate-900/95 dark:via-slate-900/90 dark:to-[#0A1633] shadow-sm dark:shadow-xl text-slate-900 dark:text-white transition-colors">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3.5">
+                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/40 text-amber-600 dark:text-amber-400 shadow-sm dark:shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                    <ShieldCheck className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                        {language === 'am' ? 'የዋና አስተዳዳሪ ኮማንድ ኮንሶል' : 'Super Admin Command Console'}
+                      </h2>
+                      <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40">
+                        👑 {language === 'am' ? 'ሙሉ ስልጣን' : 'FULL PRIVILEGES'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                      {language === 'am'
+                        ? 'ይፋዊ የተማሪዎች መዝገብ፣ የአካዳሚክ መዋቅር፣ የሰራተኞች ቁጥጥር፣ ዶርሞችና የንብረት አስተዳደር'
+                        : 'Official Roster Management, Academic Structure, Staff Provisioning, Dormitories & Asset Governance'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3 Action Buttons on Right (matching mockup) */}
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <button
+                    onClick={() => setShowUploadModal(true)}
+                    className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white text-xs font-bold shadow-md shadow-blue-500/20 flex items-center space-x-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span>{language === 'am' ? 'የተማሪዎች ዝርዝር ጫን (Excel/CSV)' : 'Upload Student Roster (Excel/CSV)'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowAddStudentModal(true)}
+                    className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-bold shadow-md shadow-emerald-500/20 flex items-center space-x-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{language === 'am' ? 'አዲስ ተማሪ በእጅ መዝግብ' : 'Add Student Manually'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowAddStaffModal(true)}
+                    className="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white text-xs font-bold shadow-md shadow-orange-500/20 flex items-center space-x-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>{language === 'am' ? 'አዲስ ሰራተኛ መድብ' : 'Add Staff User'}</span>
+                  </button>
+                </div>
               </div>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1">
-                {t('admin.commandSub')}
-              </p>
+            </div>
+
+            {/* 3. 4 Key KPI Metric Cards (Matching mockup) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Card 1: Total Official Students */}
+              <div className="p-4 rounded-2xl bg-white dark:bg-gradient-to-br dark:from-[#0F3577] dark:to-[#0A2252] border border-slate-200 dark:border-blue-500/30 relative overflow-hidden shadow-sm dark:shadow-lg transition-colors">
+                <Users className="absolute -right-3 -bottom-3 w-24 h-24 text-slate-900/5 dark:text-white/5 pointer-events-none" />
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="p-2 rounded-xl bg-blue-50 dark:bg-white/10 text-blue-600 dark:text-cyan-300">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                    {language === 'am' ? 'ጠቅላላ ይፋዊ ተማሪዎች' : 'Total Official Students'}
+                  </span>
+                </div>
+                <div className="text-3xl font-black text-slate-900 dark:text-white">{totalOfficial}</div>
+                <div className="mt-2 inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 text-[10px] font-bold font-mono">
+                  <span>↑ {registeredCount} {language === 'am' ? 'የተመዘገቡና ንቁ' : 'Registered & Active'}</span>
+                </div>
+              </div>
+
+              {/* Card 2: Flagged Discrepancies */}
+              <div className="p-4 rounded-2xl bg-white dark:bg-gradient-to-br dark:from-[#12423A] dark:to-[#0B2C27] border border-slate-200 dark:border-emerald-500/30 relative overflow-hidden shadow-sm dark:shadow-lg transition-colors">
+                <AlertTriangle className="absolute -right-3 -bottom-3 w-24 h-24 text-slate-900/5 dark:text-white/5 pointer-events-none" />
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                    {language === 'am' ? 'የተጠቆሙ ግድፈቶች' : 'Flagged Discrepancies'}
+                  </span>
+                </div>
+                <div className="text-3xl font-black text-slate-900 dark:text-white">{flaggedCount}</div>
+                <div className="mt-2 text-[10px] text-amber-700 dark:text-amber-300 font-semibold flex items-center space-x-1">
+                  <span>{language === 'am' ? 'የአስተዳዳሪ ማረጋገጫ ይሻል' : 'Requires admin review'}</span>
+                </div>
+              </div>
+
+              {/* Card 3: Campus Bed Occupancy */}
+              <div className="p-4 rounded-2xl bg-white dark:bg-gradient-to-br dark:from-[#10245E] dark:to-[#08153A] border border-slate-200 dark:border-blue-500/30 relative overflow-hidden shadow-sm dark:shadow-lg transition-colors">
+                <Bed className="absolute -right-3 -bottom-3 w-24 h-24 text-slate-900/5 dark:text-white/5 pointer-events-none" />
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-cyan-300">
+                    <Bed className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                    {language === 'am' ? 'የዶርም አልጋዎች የመያዝ ምጣኔ' : 'Campus Bed Occupancy'}
+                  </span>
+                </div>
+                <div className="text-3xl font-black text-slate-900 dark:text-white">
+                  {totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 75}%
+                </div>
+                {/* Progress Bar */}
+                <div className="mt-2.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-cyan-500 dark:bg-cyan-400 h-full rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(0,240,255,0.6)]"
+                    style={{ width: `${totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 75}%` }}
+                  />
+                </div>
+                <div className="mt-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-mono text-right">
+                  {occupiedBeds || 378} / {totalBeds || 492} {language === 'am' ? 'አልጋዎች' : 'beds'}
+                </div>
+              </div>
+
+              {/* Card 4: Registered Properties */}
+              <div className="p-4 rounded-2xl bg-white dark:bg-gradient-to-br dark:from-[#0E3A4B] dark:to-[#092530] border border-slate-200 dark:border-teal-500/30 relative overflow-hidden shadow-sm dark:shadow-lg transition-colors">
+                <Database className="absolute -right-3 -bottom-3 w-24 h-24 text-slate-900/5 dark:text-white/5 pointer-events-none" />
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="p-2 rounded-xl bg-teal-50 dark:bg-teal-500/20 text-teal-600 dark:text-teal-300">
+                    <Database className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                    {language === 'am' ? 'የተመዘገቡ ንብረቶች' : 'Registered Properties'}
+                  </span>
+                </div>
+                <div className="text-3xl font-black text-slate-900 dark:text-white">{properties.length}</div>
+                <div className="mt-2 inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30 text-[10px] font-bold">
+                  <span>✔ {properties.filter(p => p.condition === 'EXCELLENT' || p.condition === 'GOOD').length || 5} {language === 'am' ? 'በጥሩ ይዞታ ላይ' : 'in prime condition'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. 2 Visual Analytics Cards (Matching mockup) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Chart 1: Official Student Distribution by College */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-blue-500/30 shadow-sm dark:shadow-xl transition-colors">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <BarChart3 className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      {language === 'am' ? 'የተማሪዎች ስርጭት በኮሌጆች' : 'Official Student Distribution by College'}
+                    </h3>
+                  </div>
+                  <select
+                    value={distributionSemester}
+                    onChange={(e) => setDistributionSemester(e.target.value)}
+                    className="px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-blue-500/40 rounded-lg text-xs text-slate-800 dark:text-cyan-300 focus:outline-none"
+                  >
+                    <option value="This Semester">{language === 'am' ? 'ይህ ሴሚስተር' : 'This Semester'} ▾</option>
+                    <option value="Semester 1">{language === 'am' ? 'ሴሚስተር 1' : 'Semester 1'}</option>
+                    <option value="Semester 2">{language === 'am' ? 'ሴሚስተር 2' : 'Semester 2'}</option>
+                  </select>
+                </div>
+
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={collegeBarChartData} margin={{ top: 20, right: 20, left: -20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? '#1e293b' : '#f1f5f9'} />
+                      <XAxis dataKey="name" stroke={theme === 'dark' ? '#64748b' : '#94a3b8'} fontSize={11} interval={0} />
+                      <YAxis stroke={theme === 'dark' ? '#64748b' : '#94a3b8'} fontSize={11} allowDecimals={false} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff', borderColor: theme === 'dark' ? '#0284c7' : '#e2e8f0', borderRadius: '12px', color: theme === 'dark' ? '#fff' : '#0f172a', fontSize: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                      />
+                      <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                        {collegeBarChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Chart 2: Dormitory Bed Capacity & Availability */}
+              <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-blue-500/30 shadow-sm dark:shadow-xl relative overflow-hidden transition-colors">
+                <Building2 className="absolute -right-4 -bottom-4 w-40 h-40 text-slate-900/5 dark:text-white/5 pointer-events-none" />
+                <div className="flex items-center space-x-2 mb-4">
+                  <Layers className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    {language === 'am' ? 'የዶርም አልጋዎች ምጣኔና ዝግጁነት' : 'Dormitory Bed Capacity & Availability'}
+                  </h3>
+                </div>
+
+                <div className="h-64 flex flex-col sm:flex-row items-center justify-around">
+                  {/* Donut Chart with Center Percentage */}
+                  <div className="relative w-44 h-44 flex items-center justify-center shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Occupied', value: occupiedBeds || 378, color: '#0284c7' },
+                            { name: 'Available', value: availableBeds || 114, color: '#10b981' }
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={75}
+                          startAngle={90}
+                          endAngle={-270}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          <Cell fill="#0284c7" />
+                          <Cell fill="#10b981" />
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff', borderColor: theme === 'dark' ? '#0284c7' : '#e2e8f0', borderRadius: '8px', color: theme === 'dark' ? '#fff' : '#0f172a', fontSize: '12px' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    {/* Center Text */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                      <span className="text-2xl font-black text-slate-900 dark:text-white">
+                        {totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 75}%
+                      </span>
+                      <span className="text-[10px] font-semibold text-blue-600 dark:text-cyan-300">
+                        {language === 'am' ? 'የተያዘ' : 'Occupied'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Legend on Right */}
+                  <div className="space-y-3 shrink-0">
+                    <div className="flex items-center space-x-3 text-xs">
+                      <span className="w-3 h-3 rounded-full bg-[#0284c7]" />
+                      <span className="text-slate-600 dark:text-slate-300 w-20">{language === 'am' ? 'የተያዘ' : 'Occupied'}</span>
+                      <span className="font-mono font-bold text-slate-900 dark:text-white">{occupiedBeds || 378}</span>
+                    </div>
+
+                    <div className="flex items-center space-x-3 text-xs">
+                      <span className="w-3 h-3 rounded-full bg-[#10b981]" />
+                      <span className="text-slate-600 dark:text-slate-300 w-20">{language === 'am' ? 'ዝግጁ' : 'Available'}</span>
+                      <span className="font-mono font-bold text-slate-900 dark:text-white">{availableBeds || 114}</span>
+                    </div>
+
+                    <div className="flex items-center space-x-3 text-xs pt-2 border-t border-slate-200 dark:border-slate-800">
+                      <span className="w-3 h-3 rounded-full bg-[#64748b]" />
+                      <span className="text-slate-600 dark:text-slate-300 w-20">{language === 'am' ? 'ጠቅላላ' : 'Total Beds'}</span>
+                      <span className="font-mono font-bold text-slate-900 dark:text-white">{totalBeds || 492}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Quick Actions */}
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setShowUploadModal(true)}
-              className="px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg text-xs flex items-center space-x-1.5 transition shadow-sm cursor-pointer"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span>{t('admin.uploadRoster')}</span>
-            </button>
+        {/* ==================================================== */}
+        {/* TAB: DORMITORIES (BLOCKS & ACCOMMODATION OVERVIEW)   */}
+        {/* ==================================================== */}
+        {activeTab === 'dormitories' && (
+          <div className="space-y-5 animate-in fade-in">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-blue-500/30 shadow-sm transition-colors">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                  <Bed className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                    {language === 'am' ? 'የዩኒቨርሲቲ የመኖሪያ ዶርሞች አስተዳደር' : 'University Dormitories & Residential Blocks'}
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
+                    {language === 'am' ? 'የህንፃዎች መያዝ ምጣኔ፣ የወለሎችና የአልጋዎች ቁጥጥር' : 'Building occupancy rates, room allocations & proctor assignments'}
+                  </p>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-500/40 text-xs font-mono font-bold">
+                {dormitories.length} {language === 'am' ? 'ብሎኮች' : 'Residential Blocks'}
+              </span>
+            </div>
 
-            <button
-              onClick={() => setShowAddStudentModal(true)}
-              className="px-3.5 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-600 font-semibold rounded-lg text-xs flex items-center space-x-1.5 transition shadow-sm cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
-              <span>{t('admin.addStudent')}</span>
-            </button>
+            {/* Dormitory Block Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {dormitories.map((dorm) => {
+                const percent = Math.round((dorm.occupiedBeds / (dorm.totalBeds || 1)) * 100);
+                return (
+                  <div key={dorm.id} className="rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-blue-500/30 overflow-hidden shadow-sm dark:shadow-xl flex flex-col justify-between transition-colors">
+                    <div className="relative h-40">
+                      <img
+                        src={dorm.image || '/assets/images/dormitory_blocks.jpg'}
+                        alt={dorm.name}
+                        className="w-full h-full object-cover brightness-105 contrast-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 via-30% to-transparent to-60%" />
+                      <span className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-blue-900/90 text-cyan-300 text-[10px] font-mono font-bold border border-cyan-400/40">
+                        {dorm.blockNumber}
+                      </span>
+                      <div className="absolute bottom-2 left-3 right-3">
+                        <h4 className="text-sm font-black text-white truncate">
+                          {language === 'am' ? dorm.amharicName : dorm.name}
+                        </h4>
+                        <span className="text-[10px] font-semibold text-cyan-300">
+                          {dorm.genderType} • {dorm.totalFloors} {language === 'am' ? 'ወለሎች' : 'Floors'}
+                        </span>
+                      </div>
+                    </div>
 
-            <button
-              onClick={() => setShowAddStaffModal(true)}
-              className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg text-xs flex items-center space-x-1.5 transition shadow-sm cursor-pointer"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>{t('admin.addStaff')}</span>
-            </button>
+                    <div className="p-4 space-y-3">
+                      <div>
+                        <div className="flex justify-between text-xs text-slate-700 dark:text-slate-300 mb-1 font-medium">
+                          <span>{language === 'am' ? 'የመያዝ ምጣኔ' : 'Occupancy Rate'}</span>
+                          <span className="font-bold text-slate-900 dark:text-white">{percent}%</span>
+                        </div>
+                        <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="bg-cyan-500 dark:bg-cyan-400 h-full rounded-full transition-all duration-500"
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-mono">
+                          <span>{dorm.occupiedBeds} {language === 'am' ? 'የተያዘ' : 'occupied'}</span>
+                          <span>{dorm.totalBeds - dorm.occupiedBeds} {language === 'am' ? 'ክፍት' : 'available'}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-200 dark:border-slate-800 text-xs flex items-center justify-between text-slate-700 dark:text-slate-300">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">{language === 'am' ? 'ኃላፊ ፕሮክተር:' : 'Proctor:'}</span>
+                        <span className="font-bold text-slate-900 dark:text-white truncate max-w-[140px]">{dorm.managerName}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </div>
-
-      {/* Sub-navigation tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-2 sm:space-x-4 overflow-x-auto pb-1 text-xs sm:text-sm font-semibold">
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition cursor-pointer shrink-0 ${
-            activeTab === 'analytics'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4" />
-          <span>{t('admin.analyticsTab')}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('roster')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition cursor-pointer shrink-0 ${
-            activeTab === 'roster'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <Users className="w-4 h-4" />
-          <span>{t('admin.rosterTab')}</span>
-          <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-cyan-100 dark:bg-cyan-950 text-cyan-800 dark:text-cyan-400 border border-cyan-300 dark:border-cyan-800">
-            {totalOfficial}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('academics')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition cursor-pointer shrink-0 ${
-            activeTab === 'academics'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>{t('admin.academicsTab')}</span>
-          <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800">
-            {colleges.length} / {departments.length}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('staff')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition cursor-pointer shrink-0 ${
-            activeTab === 'staff'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <Building className="w-4 h-4" />
-          <span>{t('admin.staffTab')}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('audit')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition cursor-pointer shrink-0 ${
-            activeTab === 'audit'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <Activity className="w-4 h-4" />
-          <span>{t('admin.auditTab')}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('settings')}
-          className={`py-2 px-3 border-b-2 flex items-center space-x-2 transition cursor-pointer shrink-0 ${
-            activeTab === 'settings'
-              ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
-          }`}
-        >
-          <Settings className="w-4 h-4" />
-          <span>{t('admin.settingsTab')}</span>
-        </button>
-      </div>
+        )}
 
       {/* ==================================================== */}
       {/* TAB 1: ANALYTICS & HIGH LEVEL METRICS */}
@@ -698,7 +986,7 @@ export const SuperAdminDashboard: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
                     <YAxis stroke="#64748b" fontSize={11} />
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
                     />
                     <Bar dataKey="count" fill="#06b6d4" radius={[4, 4, 0, 0]} name={language === 'am' ? 'የተማሪ ብዛት' : 'Students'} />
@@ -731,7 +1019,7 @@ export const SuperAdminDashboard: React.FC = () => {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#fff' }}
                     />
                   </PieChart>
@@ -823,15 +1111,24 @@ export const SuperAdminDashboard: React.FC = () => {
                         {stu.studentId}
                       </td>
                       <td className="py-3 px-4">
-                        <div className="font-bold text-slate-900 dark:text-white">
-                          {getStudentDisplayName(stu)}
+                        <div className="flex items-center space-x-2.5">
+                          <img
+                            src={stu.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
+                            alt={stu.fullName}
+                            className="w-8 h-8 rounded-xl object-cover border border-cyan-400 shadow-sm shrink-0"
+                          />
+                          <div>
+                            <div className="font-bold text-slate-900 dark:text-white">
+                              {getStudentDisplayName(stu)}
+                            </div>
+                            {language === 'am' && stu.fullName !== stu.amharicName && (
+                              <div className="text-[10px] text-slate-400 font-sans">{stu.fullName}</div>
+                            )}
+                            {language === 'en' && stu.amharicName && (
+                              <div className="text-[10px] text-slate-400 font-sans">{stu.amharicName}</div>
+                            )}
+                          </div>
                         </div>
-                        {language === 'am' && stu.fullName !== stu.amharicName && (
-                          <div className="text-[10px] text-slate-400 font-sans">{stu.fullName}</div>
-                        )}
-                        {language === 'en' && stu.amharicName && (
-                          <div className="text-[10px] text-slate-400 font-sans">{stu.amharicName}</div>
-                        )}
                       </td>
                       <td className="py-3 px-4">
                         <div className="font-semibold text-slate-800 dark:text-slate-200">
@@ -846,13 +1143,12 @@ export const SuperAdminDashboard: React.FC = () => {
                         <div className="text-[10px] text-slate-500">{stu.semester}</div>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          stu.status === 'VERIFIED'
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${stu.status === 'VERIFIED'
                             ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/40'
                             : stu.status === 'FLAGGED'
-                            ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/40'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
-                        }`}>
+                              ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-500/40'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                          }`}>
                           {t(`status.${stu.status}`)}
                         </span>
                         {stu.notes && stu.status === 'FLAGGED' && (
@@ -921,7 +1217,7 @@ export const SuperAdminDashboard: React.FC = () => {
       {/* ==================================================== */}
       {activeTab === 'academics' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-in fade-in">
-          
+
           {/* Colleges Panel */}
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
             <div className="flex items-center justify-between">
@@ -1218,7 +1514,7 @@ export const SuperAdminDashboard: React.FC = () => {
 
             return (
               <div key={category.role} className={`rounded-2xl border ${category.borderColor} bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden`}>
-                
+
                 {/* Header */}
                 <div className={`${category.headerBg} px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b ${category.borderColor}`}>
                   <div className="flex items-center space-x-3">
@@ -1259,12 +1555,12 @@ export const SuperAdminDashboard: React.FC = () => {
                   <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
                     {staffInRole.map((staff) => (
                       <div key={staff.id} className="p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition">
-                        
+
                         {/* Profile Info */}
                         <div className="flex items-start space-x-3.5">
-                          <img 
-                            src={staff.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'} 
-                            alt={staff.name} 
+                          <img
+                            src={staff.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'}
+                            alt={staff.name}
                             className="w-11 h-11 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700 shrink-0"
                           />
                           <div>
@@ -1272,11 +1568,10 @@ export const SuperAdminDashboard: React.FC = () => {
                               <span className="text-sm font-bold text-slate-900 dark:text-white">
                                 {language === 'am' ? (staff.amharicName || staff.name) : staff.name}
                               </span>
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                staff.status === 'ACTIVE'
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${staff.status === 'ACTIVE'
                                   ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/40'
                                   : 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-400 border border-red-300 dark:border-red-500/40'
-                              }`}>
+                                }`}>
                                 <span className={`w-1.5 h-1.5 rounded-full mr-1 ${staff.status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-red-500'}`} />
                                 {staff.status === 'ACTIVE' ? t('status.ACTIVE') : t('status.SUSPENDED')}
                               </span>
@@ -1300,7 +1595,7 @@ export const SuperAdminDashboard: React.FC = () => {
                           <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 mb-1">
                             {category.workloadTitle}
                           </div>
-                          
+
                           {category.role === 'DORMITORY_MANAGER' && (
                             <div className="flex items-center justify-between">
                               <div>
@@ -1384,16 +1679,15 @@ export const SuperAdminDashboard: React.FC = () => {
                               const newStatus = staff.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
                               updateStaffUser(staff.id, { status: newStatus as any });
                               showToast(
-                                language === 'am' 
-                                  ? `${staff.name} አሁን ${newStatus === 'ACTIVE' ? 'ገቢር' : 'የታገደ'} ሆኗል!` 
+                                language === 'am'
+                                  ? `${staff.name} አሁን ${newStatus === 'ACTIVE' ? 'ገቢር' : 'የታገደ'} ሆኗል!`
                                   : `${staff.name} is now ${newStatus}!`
                               );
                             }}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border ${
-                              staff.status === 'ACTIVE'
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer border ${staff.status === 'ACTIVE'
                                 ? 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/40'
                                 : 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/40'
-                            }`}
+                              }`}
                           >
                             {staff.status === 'ACTIVE' ? t('staff.suspend') : t('staff.activate')}
                           </button>
@@ -1776,10 +2070,10 @@ export const SuperAdminDashboard: React.FC = () => {
                   onChange={(e) => {
                     const col = e.target.value;
                     const validDepts = departments.filter(d => d.collegeName === col);
-                    setEditingStudent({ 
-                      ...editingStudent, 
+                    setEditingStudent({
+                      ...editingStudent,
                       collegeName: col,
-                      departmentName: validDepts[0]?.name || editingStudent.departmentName 
+                      departmentName: validDepts[0]?.name || editingStudent.departmentName
                     });
                   }}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"
@@ -2341,6 +2635,7 @@ export const SuperAdminDashboard: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };

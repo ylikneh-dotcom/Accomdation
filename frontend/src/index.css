@@ -4,8 +4,7 @@
 
 @layer base {
   body {
-    background-color: #030712;
-    color: #f1f5f9;
+    @apply bg-white text-slate-900 dark:bg-[#050C1F] dark:text-slate-100;
     min-height: 100vh;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
@@ -51,14 +50,26 @@
 }
 
 ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.dark ::-webkit-scrollbar-track {
   background: #060d1e;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e3a66;
+  background: #cbd5e1;
   border-radius: 3px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #1e3a66;
+}
+
 ::-webkit-scrollbar-thumb:hover {
+  background: #0284c7;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
   background: #00f0ff;
 }

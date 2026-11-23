@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -14,7 +14,10 @@ import {
   Eye,
   EyeOff,
   Fingerprint,
-  UserPlus
+  UserPlus,
+  Camera,
+  Upload,
+  X
 } from 'lucide-react';
 
 interface RegisterPageProps {
@@ -44,6 +47,11 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToHome, onGoTo
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  // Student Photo Upload State
+  const [photo, setPhoto] = useState<string>('');
+  const [photoError, setPhotoError] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Verification state
   const [isVerifying, setIsVerifying] = useState(false);
   const [feedback, setFeedback] = useState<{
@@ -65,6 +73,22 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToHome, onGoTo
     }
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setPhotoError(language === 'am' ? 'የፎቶው መጠን ከ 5MB በታች መሆን አለበት::' : 'Photo size must be less than 5MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhoto(reader.result as string);
+        setPhotoError('');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback({ type: null, message: '' });
@@ -73,6 +97,17 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToHome, onGoTo
       setFeedback({
         type: 'error',
         message: language === 'am' ? 'እባክዎ ሁሉንም መስኮች በትክክል ይሙሉ::' : 'All registration fields are required.'
+      });
+      return;
+    }
+
+    // MANDATORY PHOTO UPLOAD REQUIREMENT: "when student register must upload photo to see profile"
+    if (!photo) {
+      setFeedback({
+        type: 'error',
+        message: language === 'am'
+          ? 'እባክዎ የተማሪ መታወቂያ ፎቶዎን ይጫኑ፤ ፎቶ ሳይኖር መመዝገብና ፕሮፋይል ማየት አይቻልም::'
+          : 'Student ID photo upload is mandatory to view your profile and complete registration.'
       });
       return;
     }
@@ -104,7 +139,9 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToHome, onGoTo
         departmentName: department,
         batch,
         semester,
-        password
+        password,
+        avatar: photo,
+        photo
       });
 
       if (result.success) {
@@ -129,15 +166,15 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToHome, onGoTo
   return (
     <div className="relative min-h-[calc(100vh-3.5rem)] flex items-center justify-center px-4 py-8 sm:py-12 overflow-hidden">
       
-      {/* High-Brightness Campus Image Background */}
+      {/* High-Brightness & Clear Campus Image Background */}
       <div className="absolute inset-0 pointer-events-none">
         <img
           src="/assets/images/dormitory_blocks.jpg"
           alt="Wachemo Campus Dormitory"
-          className="w-full h-full object-cover brightness-110 contrast-105"
+          className="w-full h-full object-cover brightness-105 contrast-105"
         />
-        {/* Responsive translucent overlay to guarantee high-contrast readability */}
-        <div className="absolute inset-0 bg-white/40 dark:bg-black/60 backdrop-blur-[2px]" />
+        {/* Subtle non-blurring overlay to guarantee crisp photo clarity */}
+        <div className="absolute inset-0 bg-white/20 dark:bg-black/30" />
       </div>
 
       <div className="relative z-10 w-full max-w-lg mx-auto">
@@ -326,6 +363,89 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onBackToHome, onGoTo
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {/* MANDATORY STUDENT PHOTO UPLOAD (Required to see profile) */}
+            <div>
+              <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 flex items-center justify-between">
+                <span className="flex items-center space-x-1.5">
+                  <Camera className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>{language === 'am' ? 'የተማሪ ይፋዊ መታወቂያ ፎቶ' : 'Official Student ID Photo'} *</span>
+                </span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-bold">
+                  {language === 'am' ? 'ፕሮፋይል ለማየት ግዴታ ነው' : 'Required to view profile'}
+                </span>
+              </label>
+
+              <div className="p-3.5 bg-slate-50/90 dark:bg-slate-950/80 border-2 border-dashed border-emerald-300 dark:border-emerald-600/50 rounded-2xl flex items-center space-x-4 transition hover:border-emerald-500">
+                {/* Photo Preview Avatar or Placeholder */}
+                <div className="relative shrink-0">
+                  {photo ? (
+                    <div className="relative">
+                      <img
+                        src={photo}
+                        alt="Uploaded Student Portrait"
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border-2 border-emerald-500 shadow-md"
+                      />
+                      <div className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 rounded-full text-white shadow-sm" title="Verified Photo">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-100/60 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 flex flex-col items-center justify-center text-emerald-600 dark:text-emerald-400">
+                      <Camera className="w-6 h-6 mb-1 text-emerald-500" />
+                      <span className="text-[9px] font-bold uppercase">{language === 'am' ? 'ፎቶ የለም' : 'No Photo'}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Upload Action & Instruction */}
+                <div className="flex-1 min-w-0">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handlePhotoChange}
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    className="hidden"
+                    id="student-photo-file-input"
+                  />
+                  <div className="flex items-center space-x-2">
+                    <label
+                      htmlFor="student-photo-file-input"
+                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white text-xs font-bold shadow-md shadow-emerald-500/20 transition-all cursor-pointer inline-flex items-center space-x-1.5 hover:scale-105 active:scale-95"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{photo ? (language === 'am' ? 'ፎቶ ቀይር' : 'Change Photo') : (language === 'am' ? 'ፎቶ ይጫኑ (Upload)' : 'Upload Photo')}</span>
+                    </label>
+
+                    {photo && (
+                      <button
+                        type="button"
+                        onClick={() => setPhoto('')}
+                        className="p-2 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/50 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 text-xs transition cursor-pointer"
+                        title="Remove photo"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1.5 leading-snug">
+                    {photo ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center space-x-1">
+                        <CheckCircle2 className="w-3 h-3 inline shrink-0" />
+                        <span>{language === 'am' ? 'የተማሪ መታወቂያ ፎቶ ተመርጧል::' : 'Student ID photo ready.'}</span>
+                      </span>
+                    ) : (
+                      <span>{language === 'am' ? 'የቅርብ ጊዜ ጥርት ያለ የፊት ፎቶ ይስቀሉ (JPG/PNG, Max 5MB)' : 'Upload clear portrait photo to see profile (JPG/PNG, Max 5MB)'}</span>
+                    )}
+                  </p>
+
+                  {photoError && (
+                    <p className="text-[10px] text-red-500 font-bold mt-1">{photoError}</p>
+                  )}
+                </div>
               </div>
             </div>
 
